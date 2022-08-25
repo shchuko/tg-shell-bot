@@ -7,7 +7,7 @@ import java.util.*
 
 data class Config(
     var telegramApiKey: String,
-    var telegramAllowedUsers: List<String>,
+    var telegramAllowedUsers: Set<String>,
     var shellPath: String
 ) {
     companion object {
@@ -32,7 +32,7 @@ data class Config(
 
             return Config(
                 telegramApiKey,
-                telegramAllowedUsers,
+                telegramAllowedUsers.toSet(),
                 shellPath
             )
         }
@@ -40,7 +40,7 @@ data class Config(
 
     fun loadOptionsOverrides(options: CmdlineOptions) {
         if (options.telegramAllowedUsers.isNotBlank()) {
-            telegramAllowedUsers = options.telegramAllowedUsers.split(",").filter { it.isNotBlank() }
+            telegramAllowedUsers = options.telegramAllowedUsers.split(",").filter { it.isNotBlank() }.toSet()
         }
 
         if (options.shellPath.isNotBlank()) {

@@ -1,11 +1,14 @@
 package com.github.shchuko.tgshellbot
 
+import com.github.kotlintelegrambot.Bot
 import com.github.kotlintelegrambot.dispatcher.Dispatcher
 import com.github.kotlintelegrambot.dispatcher.callbackQuery
 import com.github.kotlintelegrambot.dispatcher.command
 import com.github.kotlintelegrambot.dispatcher.handlers.CallbackQueryHandlerEnvironment
 import com.github.kotlintelegrambot.dispatcher.handlers.CommandHandlerEnvironment
+import com.github.kotlintelegrambot.entities.CallbackQuery
 import com.github.kotlintelegrambot.entities.ChatId
+import com.github.kotlintelegrambot.entities.Message
 import java.util.*
 
 class MainDispatcher(private val config: Config) {
@@ -20,6 +23,10 @@ class MainDispatcher(private val config: Config) {
     }
 
     private fun handleExecCommand(env: CommandHandlerEnvironment): Unit = with(env) {
+        if (!findUserOrReplyNotAllowed(message, bot)) {
+            return
+        }
+
         val chatId = message.chat.id
         val commandArgs = listOf(
             config.shellPath, "-c", args.joinToString(" ")
@@ -56,6 +63,9 @@ class MainDispatcher(private val config: Config) {
     }
 
     private fun handleTerminateExecutionCbQuery(env: CallbackQueryHandlerEnvironment): Unit = with(env) {
+        if (!findUserOrReplyNotAllowed(callbackQuery, bot)) {
+            return
+        }
         val messageId = callbackQuery.message?.messageId ?: return
         val chatId = callbackQuery.message?.chat?.id ?: return
 
@@ -84,6 +94,10 @@ class MainDispatcher(private val config: Config) {
     }
 
     private fun handleRefreshStdoutStderr(env: CallbackQueryHandlerEnvironment): Unit = with(env) {
+        if (!findUserOrReplyNotAllowed(callbackQuery, bot)) {
+            return
+        }
+
         val messageId = callbackQuery.message?.messageId ?: return
         val chatId = callbackQuery.message?.chat?.id ?: error("chat id is null")
 
@@ -134,6 +148,41 @@ class MainDispatcher(private val config: Config) {
             else
                 messageIdToProcessMap[messageId]!!
         )
+    }
+
+    private fun findUserOrReplyNotAllowed(message: Message, bot: Bot): Boolean {
+        if (message.chat.username in config.telegramAllowedUsers) {
+            return true
+        }
+
+        bot.sendMessage(
+            chatId = ChatId.fromId(message.chat.id),
+            text = MessageTemplates.notAllowedMessage(),
+            parseMode = MessageTemplates.parseMode,
+            replyToMessageId = message.messageId
+        )
+        return false
+    }
+
+    private fun findUserOrReplyNotAllowed(callbackQuery: CallbackQuery, bot: Bot): Boolean {
+        val message = callbackQuery.message ?: return false
+
+        if (message.chat.username in config.telegramAllowedUsers) {
+            return true
+        }
+
+        bot.editMessageReplyMarkup(
+            chatId = ChatId.fromId(message.chat.id),
+            messageId = message.messageId,
+            replyMarkup = null
+        )
+
+        bot.answerCallbackQuery(
+            callbackQueryId = callbackQuery.id,
+            text = MessageTemplates.notAllowedMessage(),
+            showAlert = true
+        )
+        return false
     }
 
     private data class ProcessWrapper(

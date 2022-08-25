@@ -43,6 +43,8 @@ object MessageTemplates {
         appendMarkdownCodeBlock("stderr", emptyLineEnd = false) { appendCodeLine(stderr) }
     }
 
+    fun notAllowedMessage() = "Operation not allowed"
+
     /**
      * name:
      * ```
