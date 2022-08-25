@@ -37,8 +37,7 @@ class Main {
             try {
                 val bot = bot {
                     token = config.telegramApiKey
-                    logLevel = LogLevel.All(LogLevel.Network.Basic)
-
+                    logLevel = LogLevel.None
                     dispatch {
                         MainDispatcher(config).useIn(this)
                     }

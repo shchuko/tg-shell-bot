@@ -7,6 +7,15 @@ import java.io.StringWriter
 object MessageTemplates {
     val parseMode = ParseMode.MARKDOWN_V2
 
+    fun startMessage(config: Config) = """
+        Bot is running
+        Shell: `${config.shellPath}`
+        
+        Commands:
+            /start \- start a bot
+            /exec `COMMAND` \- run command with `${config.shellPath} \-c COMMAND`
+    """.trimIndent()
+
     fun processCouldNotStartMessage(commandArgs: List<String>, cause: Exception) = buildString {
         appendMarkdownCodeBlock("Execute", emptyLineEnd = true) { appendCodeLine(commandArgs) }
         appendStatus("could not start", emptyLineEnd = true)
@@ -39,6 +48,7 @@ object MessageTemplates {
     ) = buildString {
         appendMarkdownCodeBlock("Execute", emptyLineEnd = true) { appendCodeLine(commandArgs.toString()) }
         appendStatus(status, emptyLineEnd = true)
+        // TODO truncate stdout & stderr to fit Telegram message max length?
         appendMarkdownCodeBlock("stdout", emptyLineEnd = false) { appendCodeLine(stdout) }
         appendMarkdownCodeBlock("stderr", emptyLineEnd = false) { appendCodeLine(stderr) }
     }
