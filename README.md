@@ -1,4 +1,4 @@
-# tg-shell-bot - a bot allows you to execute shell commands
+# tg-shell-bot - Run shell commands remotely with Telegram bot
 
 The bot allows to execute commands on remote machine it is deployed.
 
