@@ -6,7 +6,7 @@ plugins {
 }
 
 group = "com.github.shchuko"
-version = "1.0-SNAPSHOT"
+version = "1.0"
 
 repositories {
     mavenCentral()
@@ -35,4 +35,24 @@ tasks.withType<KotlinCompile> {
 
 application {
     mainClass.set("com.github.shchuko.tgshellbot.Main")
+}
+
+@Suppress("DEPRECATION")
+val fatJar = task("fatJar", type = Jar::class) {
+    baseName = "${project.name}-fat"
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+
+    manifest {
+        attributes["Implementation-Title"] = "tg-shell-bot-fat"
+        attributes["Implementation-Version"] = version
+        attributes["Main-Class"] = "com.github.shchuko.tgshellbot.Main"
+    }
+    from(configurations.runtimeClasspath.get().map { if (it.isDirectory) it else zipTree(it) })
+    with(tasks.jar.get() as CopySpec)
+}
+
+tasks {
+    "build" {
+        dependsOn(fatJar)
+    }
 }
